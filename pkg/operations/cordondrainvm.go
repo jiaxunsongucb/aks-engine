@@ -13,6 +13,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 const (
@@ -43,8 +44,8 @@ func SafelyDrainNode(az armhelpers.AKSEngineClient, logger *log.Entry, apiserver
 	return SafelyDrainNodeWithClient(client, logger, nodeName, timeout)
 }
 
-// SafelyDrainNodeWithClient safely drains a node so that it can be deleted from the cluster
-func SafelyDrainNodeWithClient(client armhelpers.KubernetesClient, logger *log.Entry, nodeName string, timeout time.Duration) error {
+// cordonVM sets a node unschedulable.
+func cordonVM(client armhelpers.KubernetesClient, logger *log.Entry, nodeName string) (*v1.Node, error) {
 	nodeName = strings.ToLower(nodeName)
 	//Mark the node unschedulable
 	var node *v1.Node
@@ -52,7 +53,7 @@ func SafelyDrainNodeWithClient(client armhelpers.KubernetesClient, logger *log.E
 	for i := 0; i < cordonMaxRetries; i++ {
 		node, err = client.GetNode(nodeName)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		node.Spec.Unschedulable = true
 		node, err = client.UpdateNode(node)
@@ -63,11 +64,21 @@ func SafelyDrainNodeWithClient(client armhelpers.KubernetesClient, logger *log.E
 				logger.Infof("Node %s got an error suggesting a concurrent modification. Will retry to cordon", nodeName)
 				continue
 			}
-			return err
+			return nil, err
 		}
 		break
 	}
 	logger.Infof("Node %s has been marked unschedulable.", nodeName)
+
+	return node, nil
+}
+
+// SafelyDrainNodeWithClient safely drains a node so that it can be deleted from the cluster
+func SafelyDrainNodeWithClient(client armhelpers.KubernetesClient, logger *log.Entry, nodeName string, timeout time.Duration) error {
+	node, err := cordonVM(client, logger, nodeName)
+	if err != nil {
+		return err
+	}
 
 	//Evict pods in node
 	drainOp := &drainOperation{client: client, node: node, logger: logger, timeout: timeout}
@@ -227,4 +238,95 @@ func (o *drainOperation) deletePods(pods []v1.Pod) error {
 	}
 	_, err := o.client.WaitForDelete(o.logger, pods, false)
 	return err
+}
+
+func waitForDisksAttached(podsForDeletion []v1.Pod, client armhelpers.KubernetesClient, logger *log.Entry, timeout time.Duration) error {
+	nodeToVolumes := make(map[string][]string)
+	provisioner := "kubernetes.io/azure-disk"
+
+	for _, pod := range podsForDeletion {
+		namespace := pod.Namespace
+		podAfterDrain, err := client.GetPod(namespace, pod.Name)
+		if err == nil && podAfterDrain != nil {
+			nodeName := podAfterDrain.Spec.NodeName
+			for _, volume := range podAfterDrain.Spec.Volumes {
+				pvcSpec := volume.VolumeSource.PersistentVolumeClaim
+				if pvcSpec != nil {
+					pvc, err := client.GetPersistentVolumeClaim(namespace, pvcSpec.ClaimName)
+					if err != nil {
+						logger.Errorf("failed to get PVC %s in namespace %s: %s", pvcSpec.ClaimName, namespace, err.Error())
+						return err
+					}
+
+					pv, err := client.GetPersistentVolume(pvc.Spec.VolumeName)
+					if err != nil {
+						logger.Errorf("failed to get PV %s: %s", pvc.Spec.VolumeName, err.Error())
+						return err
+					}
+
+					if pv.Annotations["pv.kubernetes.io/provisioned-by"] == provisioner {
+						nodeToVolumes[nodeName] = append(nodeToVolumes[nodeName], pv.Spec.AzureDisk.DataDiskURI)
+					}
+				}
+			}
+		}
+	}
+
+	err := wait.PollImmediate(time.Duration(1)*time.Minute, timeout, func() (bool, error) {
+		for nodeName, volumes := range nodeToVolumes {
+			node, err := client.GetNode(nodeName)
+			if err != nil {
+				return false, err
+			}
+
+			pendingVolumes := []string{}
+			for _, volume := range volumes {
+				attached := false
+				for _, volumeAttached := range node.Status.VolumesAttached {
+					if string(volumeAttached.Name) == volume {
+						attached = true
+						break
+					}
+				}
+				if !attached {
+					logger.Infof("Volume %s has not attached to node %s yet", volume, nodeName)
+					pendingVolumes = append(pendingVolumes, volume)
+				}
+			}
+
+			nodeToVolumes[nodeName] = pendingVolumes
+		}
+
+		for _, volumes := range nodeToVolumes {
+			if len(volumes) > 0 {
+				logger.Info("Sleep 1 mintue to wait for all volumes attached.")
+				return false, nil
+			}
+		}
+
+		return true, nil
+	})
+
+	return err
+}
+
+// SafelyDrainNodeWithClientWaitForDisksAttached safely drains a node and waits volumes are re-attached so that it can be deleted from the cluster.
+func SafelyDrainNodeWithClientWaitForDisksAttached(client armhelpers.KubernetesClient, logger *log.Entry, nodeName string, timeout time.Duration) error {
+	node, err := cordonVM(client, logger, nodeName)
+	if err != nil {
+		return err
+	}
+
+	drainOp := &drainOperation{client: client, node: node, logger: logger, timeout: timeout}
+	podsForDeletion, err := drainOp.getPodsForDeletion()
+	if err != nil {
+		return err
+	}
+
+	err = drainOp.deleteOrEvictPodsSimple()
+	if err != nil {
+		return err
+	}
+
+	return waitForDisksAttached(podsForDeletion, client, logger, timeout)
 }

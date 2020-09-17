@@ -70,7 +70,11 @@ func (kan *UpgradeAgentNode) DeleteNode(vmName *string, drain bool) error {
 	}
 	// Cordon and drain the node
 	if drain {
-		err = operations.SafelyDrainNodeWithClient(client, kan.logger, nodeName, kan.cordonDrainTimeout)
+		if kan.UpgradeContainerService.Properties.IsAzureStackCloud() {
+			err = operations.SafelyDrainNodeWithClientWaitForDisksAttached(client, kan.logger, nodeName, kan.cordonDrainTimeout)
+		} else {
+			err = operations.SafelyDrainNodeWithClient(client, kan.logger, nodeName, kan.cordonDrainTimeout)
+		}
 		if err != nil {
 			kan.logger.Warningf("Error draining agent VM %s. Proceeding with deletion. Error: %v", *vmName, err)
 			// Proceed with deletion anyways

@@ -476,6 +476,21 @@ func (mkc *MockKubernetesClient) UpdateDeployment(namespace string, deployment *
 	return &appsv1.Deployment{}, nil
 }
 
+// GetPersistentVolumeClaim returns details about Persistent Volume Claim with passed in name.
+func (mkc *MockKubernetesClient) GetPersistentVolumeClaim(namespace string, name string) (*v1.PersistentVolumeClaim, error) {
+	return nil, nil
+}
+
+// GetPersistentVolume returns details about Persistent Volume with passed in name.
+func (mkc *MockKubernetesClient) GetPersistentVolume(name string) (*v1.PersistentVolume, error) {
+	return nil, nil
+}
+
+// GetPod returns the pod with the provided name and namespace.
+func (mkc *MockKubernetesClient) GetPod(namespace, name string) (*v1.Pod, error) {
+	return nil, nil
+}
+
 //DeleteBlob mock
 func (msc *MockStorageClient) DeleteBlob(container, blob string, options *azStorage.DeleteBlobOptions) error {
 	return nil
