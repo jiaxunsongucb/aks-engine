@@ -1,0 +1,532 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: e2e-test-variables
+data:
+  testConfig: |
+    {
+      "upgrade_cluster": true,
+      "upgrade_version": "v1.17.11",
+      "statefulset": [
+        "statefulset-with-pvc-1",
+        "statefulset-with-pvc-2",
+        "statefulset-with-pvc-3",
+        "statefulset-with-pvc-4",
+        "statefulset-with-pvc-5",
+        "statefulset-with-pvc-6",
+        "statefulset-with-pvc-7"
+      ],
+      "deployment": [
+        "deployment-with-pvc-1",
+        "deployment-with-pvc-2",
+        "deployment-with-pvc-3"
+      ]
+    }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: statefulset-with-pvc-1
+  namespace: default
+  labels:
+    app: statefulset-with-pvc
+spec:
+  replicas: 3
+  serviceName: statefulset-with-pvc
+  selector:
+    matchLabels:
+      app: statefulset-with-pvc-1
+  template:
+    metadata:
+      labels:
+        app: statefulset-with-pvc-1
+    spec:
+      containers:
+      - name: nginx
+        image: mcr.microsoft.com/oss/nginx/nginx:1.17.3-alpine
+        command:
+          - "/bin/sh"
+          - "-c"
+          - while true; do echo $(date) >> /mnt/disk/outfile; sleep 1; done
+        volumeMounts:
+          - name: persistent-storage-statefulset
+            mountPath: /mnt/disk
+  volumeClaimTemplates:
+    - metadata:
+        name: persistent-storage-statefulset
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "default"
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: statefulset-with-pvc-1-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: statefulset-with-pvc-1
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: statefulset-with-pvc-2
+  namespace: default
+  labels:
+    app: statefulset-with-pvc
+spec:
+  replicas: 3
+  serviceName: statefulset-with-pvc
+  selector:
+    matchLabels:
+      app: statefulset-with-pvc-2
+  template:
+    metadata:
+      labels:
+        app: statefulset-with-pvc-2
+    spec:
+      containers:
+      - name: nginx
+        image: mcr.microsoft.com/oss/nginx/nginx:1.17.3-alpine
+        command:
+          - "/bin/sh"
+          - "-c"
+          - while true; do echo $(date) >> /mnt/disk/outfile; sleep 1; done
+        volumeMounts:
+          - name: persistent-storage-statefulset
+            mountPath: /mnt/disk
+  volumeClaimTemplates:
+    - metadata:
+        name: persistent-storage-statefulset
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "default"
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: statefulset-with-pvc-2-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: statefulset-with-pvc-2
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: statefulset-with-pvc-3
+  namespace: default
+  labels:
+    app: statefulset-with-pvc
+spec:
+  replicas: 3
+  serviceName: statefulset-with-pvc
+  selector:
+    matchLabels:
+      app: statefulset-with-pvc-3
+  template:
+    metadata:
+      labels:
+        app: statefulset-with-pvc-3
+    spec:
+      containers:
+      - name: nginx
+        image: mcr.microsoft.com/oss/nginx/nginx:1.17.3-alpine
+        command:
+          - "/bin/sh"
+          - "-c"
+          - while true; do echo $(date) >> /mnt/disk/outfile; sleep 1; done
+        volumeMounts:
+          - name: persistent-storage-statefulset
+            mountPath: /mnt/disk
+  volumeClaimTemplates:
+    - metadata:
+        name: persistent-storage-statefulset
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "default"
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: statefulset-with-pvc-3-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: statefulset-with-pvc-3
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: statefulset-with-pvc-4
+  namespace: default
+  labels:
+    app: statefulset-with-pvc
+spec:
+  replicas: 3
+  serviceName: statefulset-with-pvc
+  selector:
+    matchLabels:
+      app: statefulset-with-pvc-4
+  template:
+    metadata:
+      labels:
+        app: statefulset-with-pvc-4
+    spec:
+      containers:
+      - name: nginx
+        image: mcr.microsoft.com/oss/nginx/nginx:1.17.3-alpine
+        command:
+          - "/bin/sh"
+          - "-c"
+          - while true; do echo $(date) >> /mnt/disk1/outfile; sleep 1; done
+        volumeMounts:
+          - name: persistent-storage-statefulset1
+            mountPath: /mnt/disk1
+          - name: persistent-storage-statefulset2
+            mountPath: /mnt/disk2
+  volumeClaimTemplates:
+    - metadata:
+        name: persistent-storage-statefulset1
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "default"
+        resources:
+          requests:
+            storage: 1Gi
+    - metadata:
+        name: persistent-storage-statefulset2
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "default"
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: statefulset-with-pvc-4-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: statefulset-with-pvc-4
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: statefulset-with-pvc-5
+  namespace: default
+  labels:
+    app: statefulset-with-pvc
+spec:
+  replicas: 3
+  serviceName: statefulset-with-pvc
+  selector:
+    matchLabels:
+      app: statefulset-with-pvc-5
+  template:
+    metadata:
+      labels:
+        app: statefulset-with-pvc-5
+    spec:
+      containers:
+      - name: nginx
+        image: mcr.microsoft.com/oss/nginx/nginx:1.17.3-alpine
+        command:
+          - "/bin/sh"
+          - "-c"
+          - while true; do echo $(date) >> /mnt/disk1/outfile; sleep 1; done
+        volumeMounts:
+          - name: persistent-storage-statefulset1
+            mountPath: /mnt/disk1
+          - name: persistent-storage-statefulset2
+            mountPath: /mnt/disk2
+  volumeClaimTemplates:
+    - metadata:
+        name: persistent-storage-statefulset1
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "default"
+        resources:
+          requests:
+            storage: 1Gi
+    - metadata:
+        name: persistent-storage-statefulset2
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "default"
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: statefulset-with-pvc-5-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: statefulset-with-pvc-5
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: statefulset-with-pvc-6
+  namespace: default
+  labels:
+    app: statefulset-with-pvc
+spec:
+  replicas: 3
+  serviceName: statefulset-with-pvc
+  selector:
+    matchLabels:
+      app: statefulset-with-pvc-6
+  template:
+    metadata:
+      labels:
+        app: statefulset-with-pvc-6
+    spec:
+      containers:
+      - name: nginx
+        image: mcr.microsoft.com/oss/nginx/nginx:1.17.3-alpine
+        command:
+          - "/bin/sh"
+          - "-c"
+          - while true; do echo $(date) >> /mnt/disk1/outfile; sleep 1; done
+        volumeMounts:
+          - name: persistent-storage-statefulset1
+            mountPath: /mnt/disk1
+          - name: persistent-storage-statefulset2
+            mountPath: /mnt/disk2
+  volumeClaimTemplates:
+    - metadata:
+        name: persistent-storage-statefulset1
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "default"
+        resources:
+          requests:
+            storage: 1Gi
+    - metadata:
+        name: persistent-storage-statefulset2
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "default"
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: statefulset-with-pvc-6-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: statefulset-with-pvc-6
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: statefulset-with-pvc-7
+  namespace: default
+  labels:
+    app: statefulset-with-pvc
+spec:
+  replicas: 3
+  serviceName: statefulset-with-pvc
+  selector:
+    matchLabels:
+      app: statefulset-with-pvc-7
+  template:
+    metadata:
+      labels:
+        app: statefulset-with-pvc-7
+    spec:
+      containers:
+      - name: nginx
+        image: mcr.microsoft.com/oss/nginx/nginx:1.17.3-alpine
+        command:
+          - "/bin/sh"
+          - "-c"
+          - while true; do echo $(date) >> /mnt/disk1/outfile; sleep 1; done
+        volumeMounts:
+          - name: persistent-storage-statefulset1
+            mountPath: /mnt/disk1
+          - name: persistent-storage-statefulset2
+            mountPath: /mnt/disk2
+  volumeClaimTemplates:
+    - metadata:
+        name: persistent-storage-statefulset1
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "default"
+        resources:
+          requests:
+            storage: 1Gi
+    - metadata:
+        name: persistent-storage-statefulset2
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "default"
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: statefulset-with-pvc-7-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: statefulset-with-pvc-7
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-with-pvc-1
+  namespace: default
+  labels:
+    app: deployment-with-pvc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deployment-with-pvc
+  template:
+    metadata:
+      labels:
+        app: deployment-with-pvc
+    spec:
+      containers:
+      - name: nginx
+        image: mcr.microsoft.com/oss/nginx/nginx:1.17.3-alpine
+        command:
+          - "/bin/sh"
+          - "-c"
+          - while true; do echo $(date) >> /mnt/disk/outfile; sleep 1; done
+        volumeMounts:
+          - name: persistent-storage
+            mountPath: /mnt/disk
+      volumes:
+      - name: persistent-storage
+        persistentVolumeClaim:
+          claimName: persistent-storage-deployment-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: persistent-storage-deployment-1
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: default
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-with-pvc-2
+  namespace: default
+  labels:
+    app: deployment-with-pvc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deployment-with-pvc
+  template:
+    metadata:
+      labels:
+        app: deployment-with-pvc
+    spec:
+      containers:
+      - name: nginx
+        image: mcr.microsoft.com/oss/nginx/nginx:1.17.3-alpine
+        command:
+          - "/bin/sh"
+          - "-c"
+          - while true; do echo $(date) >> /mnt/disk/outfile; sleep 1; done
+        volumeMounts:
+          - name: persistent-storage
+            mountPath: /mnt/disk
+      volumes:
+      - name: persistent-storage
+        persistentVolumeClaim:
+          claimName: persistent-storage-deployment-2
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: persistent-storage-deployment-2
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: default
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-with-pvc-3
+  namespace: default
+  labels:
+    app: deployment-with-pvc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deployment-with-pvc
+  template:
+    metadata:
+      labels:
+        app: deployment-with-pvc
+    spec:
+      containers:
+      - name: nginx
+        image: mcr.microsoft.com/oss/nginx/nginx:1.17.3-alpine
+        command:
+          - "/bin/sh"
+          - "-c"
+          - while true; do echo $(date) >> /mnt/disk/outfile; sleep 1; done
+        volumeMounts:
+          - name: persistent-storage
+            mountPath: /mnt/disk
+      volumes:
+      - name: persistent-storage
+        persistentVolumeClaim:
+          claimName: persistent-storage-deployment-3
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: persistent-storage-deployment-3
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: default
+  resources:
+    requests:
+      storage: 1Gi
