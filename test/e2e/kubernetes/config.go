@@ -52,7 +52,7 @@ func GetConfigAsync() GetConfigResult {
 
 // GetConfig returns a Config value representing the current kubeconfig
 func GetConfig() (*Config, error) {
-	cmd := exec.Command("k", "config", "view", "-o", "json")
+	cmd := exec.Command("kubectl", "config", "view", "-o", "json")
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {

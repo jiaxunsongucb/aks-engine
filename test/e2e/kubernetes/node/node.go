@@ -212,7 +212,7 @@ func DescribeNodes() {
 // Describe will describe a node resource
 func (n *Node) Describe() error {
 	var commandTimeout time.Duration
-	cmd := exec.Command("k", "describe", "node", n.Metadata.Name)
+	cmd := exec.Command("kubectl", "describe", "node", n.Metadata.Name)
 	out, err := util.RunAndLogCommand(cmd, commandTimeout)
 	log.Printf("\n%s\n", string(out))
 	return err
@@ -221,7 +221,7 @@ func (n *Node) Describe() error {
 // Add taint to node
 func (n *Node) AddTaint(taint Taint) error {
 	var commandTimeout time.Duration
-	cmd := exec.Command("k", "taint", "nodes", n.Metadata.Name, taint.Key+"="+taint.Value+":"+taint.Effect)
+	cmd := exec.Command("kubectl", "taint", "nodes", n.Metadata.Name, taint.Key+"="+taint.Value+":"+taint.Effect)
 	out, err := util.RunAndLogCommand(cmd, commandTimeout)
 	log.Printf("\n%s\n", string(out))
 	return err
@@ -230,7 +230,7 @@ func (n *Node) AddTaint(taint Taint) error {
 // Remove taint to node
 func (n *Node) RemoveTaint(taint Taint) error {
 	var commandTimeout time.Duration
-	cmd := exec.Command("k", "taint", "nodes", n.Metadata.Name, taint.Key+":"+taint.Effect+"-")
+	cmd := exec.Command("kubectl", "taint", "nodes", n.Metadata.Name, taint.Key+":"+taint.Effect+"-")
 	out, err := util.RunAndLogCommand(cmd, commandTimeout)
 	log.Printf("\n%s\n", string(out))
 	return err
@@ -401,7 +401,7 @@ func WaitOnReadyMax(nodeCount int, sleep, timeout time.Duration) bool {
 
 // Get returns the current nodes for a given kubeconfig
 func Get() (*List, error) {
-	cmd := exec.Command("k", "get", "nodes", "-o", "json")
+	cmd := exec.Command("kubectl", "get", "nodes", "-o", "json")
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -421,7 +421,7 @@ func Get() (*List, error) {
 
 // TopNodes prints nodes metrics
 func TopNodes() error {
-	cmd := exec.Command("k", "top", "nodes")
+	cmd := exec.Command("kubectl", "top", "nodes")
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {

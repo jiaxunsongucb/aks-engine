@@ -161,7 +161,7 @@ func ReplaceContainerImageFromFile(filename, containerImage string) (string, err
 
 // CreatePodFromFile will create a Pod from file with a name
 func CreatePodFromFile(filename, name, namespace string, sleep, timeout time.Duration) (*Pod, error) {
-	cmd := exec.Command("k", "apply", "-f", filename)
+	cmd := exec.Command("kubectl", "apply", "-f", filename)
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -232,7 +232,7 @@ func CreatePodFromFileIfNotExist(filename, name, namespace string, sleep, timeou
 // --overrides := `"spec": {"nodeSelector":{"kubernetes.io/os":"linux"}}}`
 func RunLinuxPod(image, name, namespace, command string, printOutput bool, sleep, commandTimeout, podGetTimeout time.Duration) (*Pod, error) {
 	overrides := `{ "spec": {"nodeSelector":{"kubernetes.io/os":"linux"}}}`
-	cmd := exec.Command("k", "run", name, "-n", namespace, "--image", image, "--image-pull-policy=IfNotPresent", "--restart=Never", "--overrides", overrides, "--command", "--", "/bin/sh", "-c", command)
+	cmd := exec.Command("kubectl", "run", name, "-n", namespace, "--image", image, "--image-pull-policy=IfNotPresent", "--restart=Never", "--overrides", overrides, "--command", "--", "/bin/sh", "-c", command)
 	var out []byte
 	var err error
 	if printOutput {
@@ -256,7 +256,7 @@ func RunLinuxPod(image, name, namespace, command string, printOutput bool, sleep
 // --overrides := `"spec": {"nodeSelector":{"kubernetes.io/os":"windows"}}}`
 func RunWindowsPod(image, name, namespace, command string, printOutput bool, sleep, commandTimeout time.Duration, podGetTimeout time.Duration) (*Pod, error) {
 	overrides := `{ "spec": {"nodeSelector":{"kubernetes.io/os":"windows"}}}`
-	cmd := exec.Command("k", "run", name, "-n", namespace, "--image", image, "--image-pull-policy=IfNotPresent", "--restart=Never", "--overrides", overrides, "--command", "--", "powershell", command)
+	cmd := exec.Command("kubectl", "run", name, "-n", namespace, "--image", image, "--image-pull-policy=IfNotPresent", "--restart=Never", "--overrides", overrides, "--command", "--", "powershell", command)
 	var out []byte
 	var err error
 	if printOutput {
@@ -320,7 +320,7 @@ func RunCommandMultipleTimes(podRunnerCmd podRunnerCmd, image, name, command str
 
 // GetAll will return all pods in a given namespace
 func GetAll(namespace string) (*List, error) {
-	cmd := exec.Command("k", "get", "pods", "-n", namespace, "-o", "json")
+	cmd := exec.Command("kubectl", "get", "pods", "-n", namespace, "-o", "json")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Printf("Error getting pod:\n")
@@ -543,7 +543,7 @@ func Get(podName, namespace string, retries int) (*Pod, error) {
 	var out []byte
 	var err error
 	for i := 0; i < retries; i++ {
-		cmd := exec.Command("k", "get", "pods", podName, "-n", namespace, "-o", "json")
+		cmd := exec.Command("kubectl", "get", "pods", podName, "-n", namespace, "-o", "json")
 		out, err = cmd.CombinedOutput()
 		if err == nil {
 			jsonErr := json.Unmarshal(out, &p)
@@ -685,7 +685,7 @@ func GetAllRunningByLabelWithRetry(labelKey, labelVal, namespace string, sleep, 
 
 // GetAllRunningByLabel will return all pods in a given namespace that match a label
 func GetAllRunningByLabel(labelKey, labelVal, namespace string) ([]Pod, error) {
-	cmd := exec.Command("k", "get", "pods", "-n", namespace, "-l", fmt.Sprintf("%s=%s", labelKey, labelVal), "-o", "json")
+	cmd := exec.Command("kubectl", "get", "pods", "-n", namespace, "-l", fmt.Sprintf("%s=%s", labelKey, labelVal), "-o", "json")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Printf("Error getting pod:\n")
@@ -1165,7 +1165,7 @@ func (p *Pod) ExecAsync(c ...string) ExecResult {
 func (p *Pod) Exec(c ...string) ([]byte, error) {
 	execCmd := []string{"exec", p.Metadata.Name, "-n", p.Metadata.Namespace}
 	execCmd = append(execCmd, c...)
-	cmd := exec.Command("k", execCmd...)
+	cmd := exec.Command("kubectl", execCmd...)
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -1182,7 +1182,7 @@ func (p *Pod) Delete(retries int) error {
 	var kubectlOutput []byte
 	var kubectlError error
 	for i := 0; i < retries; i++ {
-		cmd := exec.Command("k", "delete", "po", "-n", p.Metadata.Namespace, p.Metadata.Name)
+		cmd := exec.Command("kubectl", "delete", "po", "-n", p.Metadata.Namespace, p.Metadata.Name)
 		kubectlOutput, kubectlError = util.RunAndLogCommand(cmd, zeroValueDuration)
 		if kubectlError != nil {
 			log.Printf("Error while trying to delete Pod %s in namespace %s:%s\n", p.Metadata.Namespace, p.Metadata.Name, string(kubectlOutput))
@@ -1543,7 +1543,7 @@ func (p *Pod) ValidateHostPort(check string, attempts int, sleep time.Duration, 
 func (p *Pod) Logs() error {
 	var commandTimeout time.Duration
 	for _, container := range p.Spec.Containers {
-		cmd := exec.Command("k", "logs", p.Metadata.Name, "-c", container.Name, "-n", p.Metadata.Namespace)
+		cmd := exec.Command("kubectl", "logs", p.Metadata.Name, "-c", container.Name, "-n", p.Metadata.Namespace)
 		out, err := util.RunAndLogCommand(cmd, commandTimeout)
 		log.Printf("\n%s\n", string(out))
 		if err != nil {
@@ -1556,7 +1556,7 @@ func (p *Pod) Logs() error {
 // Describe will describe a pod resource
 func (p *Pod) Describe() error {
 	var commandTimeout time.Duration
-	cmd := exec.Command("k", "describe", "pod", p.Metadata.Name, "-n", p.Metadata.Namespace)
+	cmd := exec.Command("kubectl", "describe", "pod", p.Metadata.Name, "-n", p.Metadata.Namespace)
 	out, err := util.RunAndLogCommand(cmd, commandTimeout)
 	log.Printf("\n%s\n", string(out))
 	return err

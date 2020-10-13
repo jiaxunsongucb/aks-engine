@@ -47,7 +47,7 @@ type Status struct {
 
 // CreateJobFromFile will create a Job from file with a name
 func CreateJobFromFile(filename, name, namespace string, sleep, timeout time.Duration) (*Job, error) {
-	cmd := exec.Command("k", "apply", "-f", filename)
+	cmd := exec.Command("kubectl", "apply", "-f", filename)
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -146,7 +146,7 @@ func CreateWindowsJobFromTemplateDeleteIfExists(filename, name, namespace string
 
 // GetAll will return all jobs in a given namespace
 func GetAll(namespace string) (*List, error) {
-	cmd := exec.Command("k", "get", "jobs", "-n", namespace, "-o", "json")
+	cmd := exec.Command("kubectl", "get", "jobs", "-n", namespace, "-o", "json")
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -213,7 +213,7 @@ func GetAsync(jobName, namespace string) GetResult {
 
 // Get will return a job with a given name and namespace
 func Get(jobName, namespace string) (*Job, error) {
-	cmd := exec.Command("k", "get", "jobs", jobName, "-n", namespace, "-o", "json")
+	cmd := exec.Command("kubectl", "get", "jobs", jobName, "-n", namespace, "-o", "json")
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -358,7 +358,7 @@ func (j *Job) Delete(retries int) error {
 	var kubectlOutput []byte
 	var kubectlError error
 	for i := 0; i < retries; i++ {
-		cmd := exec.Command("k", "delete", "job", "-n", j.Metadata.Namespace, j.Metadata.Name)
+		cmd := exec.Command("kubectl", "delete", "job", "-n", j.Metadata.Namespace, j.Metadata.Name)
 		util.PrintCommand(cmd)
 		kubectlOutput, kubectlError = cmd.CombinedOutput()
 		if kubectlError != nil {
@@ -388,7 +388,7 @@ func DescribeJobs(jobPrefix, namespace string) {
 // Describe will describe a Job resource
 func (j *Job) Describe() error {
 	var commandTimeout time.Duration
-	cmd := exec.Command("k", "describe", "jobs/", j.Metadata.Name, "-n", j.Metadata.Namespace)
+	cmd := exec.Command("kubectl", "describe", "jobs/", j.Metadata.Name, "-n", j.Metadata.Namespace)
 	out, err := util.RunAndLogCommand(cmd, commandTimeout)
 	log.Printf("\n%s\n", string(out))
 	return err

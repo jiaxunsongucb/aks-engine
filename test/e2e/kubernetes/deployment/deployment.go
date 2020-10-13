@@ -165,7 +165,7 @@ func CreateLinuxDeploy(image, name, namespace, app, role string) (*Deployment, e
 		app, role, name, app, role, app, role, image, name, "linux")
 	fmt.Fprintln(tmpFile, manifest)
 
-	cmd := exec.Command("k", "apply", "-n", namespace, "-f", tmpFile.Name())
+	cmd := exec.Command("kubectl", "apply", "-n", namespace, "-f", tmpFile.Name())
 
 	out, err := util.RunAndLogCommand(cmd, commandTimeout)
 	if err != nil {
@@ -287,7 +287,7 @@ func RunLinuxDeploy(image, name, namespace, command string, replicas int) (*Depl
 		name, name, replicas, name, name, image, name, command, "linux")
 	fmt.Fprintln(tmpFile, manifest)
 
-	cmd := exec.Command("k", "apply", "-n", namespace, "-f", tmpFile.Name())
+	cmd := exec.Command("kubectl", "apply", "-n", namespace, "-f", tmpFile.Name())
 
 	out, err := util.RunAndLogCommand(cmd, commandTimeout)
 	if err != nil {
@@ -425,7 +425,7 @@ func CreateWindowsDeploy(image, name, namespace, app, role string) (*Deployment,
 		app, role, name, app, role, app, role, image, name, "windows")
 	fmt.Fprintln(tmpFile, manifest)
 
-	cmd = exec.Command("k", "apply", "-n", namespace, "-f", tmpFile.Name())
+	cmd = exec.Command("kubectl", "apply", "-n", namespace, "-f", tmpFile.Name())
 
 	out, err := util.RunAndLogCommand(cmd, commandTimeout)
 	if err != nil {
@@ -485,7 +485,7 @@ func CreateWindowsDeployWithHostport(image, name, namespace string, port int, ho
 		name, name, name, name, image, name, port, hostportStr, "windows")
 	fmt.Fprintln(tmpFile, manifest)
 
-	cmd := exec.Command("k", "apply", "-n", namespace, "-f", tmpFile.Name())
+	cmd := exec.Command("kubectl", "apply", "-n", namespace, "-f", tmpFile.Name())
 
 	out, err := util.RunAndLogCommand(cmd, commandTimeout)
 	if err != nil {
@@ -542,7 +542,7 @@ func Get(name, namespace string, retries int) (*Deployment, error) {
 	var out []byte
 	var err error
 	for i := 0; i < retries; i++ {
-		cmd := exec.Command("k", "get", "deploy", name, "-n", namespace, "-o", "json")
+		cmd := exec.Command("kubectl", "get", "deploy", name, "-n", namespace, "-o", "json")
 		out, err = cmd.CombinedOutput()
 		if err != nil {
 			util.PrintCommand(cmd)
@@ -561,7 +561,7 @@ func Get(name, namespace string, retries int) (*Deployment, error) {
 
 // GetAll will return all deployments in a given namespace
 func GetAll(namespace string) (*List, error) {
-	cmd := exec.Command("k", "get", "deployments", "-n", namespace, "-o", "json")
+	cmd := exec.Command("kubectl", "get", "deployments", "-n", namespace, "-o", "json")
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -647,7 +647,7 @@ func GetAllByPrefix(prefix, namespace string) ([]Deployment, error) {
 // Describe will describe a deployment resource
 func (d *Deployment) Describe() error {
 	var commandTimeout time.Duration
-	cmd := exec.Command("k", "describe", "deployment", d.Metadata.Name, "-n", d.Metadata.Namespace)
+	cmd := exec.Command("kubectl", "describe", "deployment", d.Metadata.Name, "-n", d.Metadata.Namespace)
 	out, err := util.RunAndLogCommand(cmd, commandTimeout)
 	log.Printf("\n%s\n", string(out))
 	return err
@@ -659,7 +659,7 @@ func (d *Deployment) Delete(retries int) error {
 	var kubectlOutput []byte
 	var kubectlError error
 	for i := 0; i < retries; i++ {
-		cmd := exec.Command("k", "delete", "deploy", "-n", d.Metadata.Namespace, d.Metadata.Name)
+		cmd := exec.Command("kubectl", "delete", "deploy", "-n", d.Metadata.Namespace, d.Metadata.Name)
 		kubectlOutput, kubectlError = util.RunAndLogCommand(cmd, zeroValueDuration)
 		if kubectlError != nil {
 			log.Printf("Error while trying to delete deployment %s in namespace %s:%s\n", d.Metadata.Namespace, d.Metadata.Name, string(kubectlOutput))
@@ -674,7 +674,7 @@ func (d *Deployment) Delete(retries int) error {
 
 	if d.Metadata.HasHPA {
 		for i := 0; i < retries; i++ {
-			cmd := exec.Command("k", "delete", "hpa", "-n", d.Metadata.Namespace, d.Metadata.Name)
+			cmd := exec.Command("kubectl", "delete", "hpa", "-n", d.Metadata.Namespace, d.Metadata.Name)
 			kubectlOutput, kubectlError = util.RunAndLogCommand(cmd, zeroValueDuration)
 			if kubectlError != nil {
 				log.Printf("Deployment %s has associated HPA but unable to delete in namespace %s:%s\n", d.Metadata.Namespace, d.Metadata.Name, string(kubectlOutput))
@@ -690,7 +690,7 @@ func (d *Deployment) Delete(retries int) error {
 // Expose will create a load balancer and expose the deployment on a given port
 func (d *Deployment) Expose(svcType string, targetPort, exposedPort int) error {
 	var commandTimeout time.Duration
-	cmd := exec.Command("k", "expose", "deployment", d.Metadata.Name, "--type", svcType, "-n", d.Metadata.Namespace, "--target-port", strconv.Itoa(targetPort), "--port", strconv.Itoa(exposedPort))
+	cmd := exec.Command("kubectl", "expose", "deployment", d.Metadata.Name, "--type", svcType, "-n", d.Metadata.Namespace, "--target-port", strconv.Itoa(targetPort), "--port", strconv.Itoa(exposedPort))
 	out, err := util.RunAndLogCommand(cmd, commandTimeout)
 	if err != nil {
 		log.Printf("Error while trying to expose (%s) target port (%v) for deployment %s in namespace %s on port %v:%s\n", svcType, targetPort, d.Metadata.Name, d.Metadata.Namespace, exposedPort, string(out))
@@ -724,7 +724,7 @@ func (d *Deployment) ExposeDeleteIfExist(pattern, namespace, svcType string, tar
 // ScaleDeployment scales a deployment to n instancees
 func (d *Deployment) ScaleDeployment(n int) error {
 	var commandTimeout time.Duration
-	cmd := exec.Command("k", "scale", fmt.Sprintf("--replicas=%d", n), "deployment", d.Metadata.Name)
+	cmd := exec.Command("kubectl", "scale", fmt.Sprintf("--replicas=%d", n), "deployment", d.Metadata.Name)
 	out, err := util.RunAndLogCommand(cmd, commandTimeout)
 	if err != nil {
 		log.Printf("Error while scaling deployment %s to %d pods:%s\n", d.Metadata.Name, n, string(out))
@@ -736,7 +736,7 @@ func (d *Deployment) ScaleDeployment(n int) error {
 // CreateDeploymentHPA applies autoscale characteristics to deployment
 func (d *Deployment) CreateDeploymentHPA(cpuPercent, min, max int) error {
 	var commandTimeout time.Duration
-	cmd := exec.Command("k", "autoscale", "deployment", d.Metadata.Name, fmt.Sprintf("--cpu-percent=%d", cpuPercent),
+	cmd := exec.Command("kubectl", "autoscale", "deployment", d.Metadata.Name, fmt.Sprintf("--cpu-percent=%d", cpuPercent),
 		fmt.Sprintf("--min=%d", min), fmt.Sprintf("--max=%d", max))
 	out, err := util.RunAndLogCommand(cmd, commandTimeout)
 	if err != nil {

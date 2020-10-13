@@ -70,7 +70,7 @@ type GetResult struct {
 
 // CreateDaemonsetFromFile will create a Pod from file with a name
 func CreateDaemonsetFromFile(filename, name, namespace string, sleep, timeout time.Duration) (*Daemonset, error) {
-	cmd := exec.Command("k", "apply", "-f", filename)
+	cmd := exec.Command("kubectl", "apply", "-f", filename)
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -134,7 +134,7 @@ func Get(dsName, namespace string, retries int) (*Daemonset, error) {
 	var out []byte
 	var err error
 	for i := 0; i < retries; i++ {
-		cmd := exec.Command("k", "get", "daemonsets", dsName, "-n", namespace, "-o", "json")
+		cmd := exec.Command("kubectl", "get", "daemonsets", dsName, "-n", namespace, "-o", "json")
 		out, err = cmd.CombinedOutput()
 		if err == nil {
 			jsonErr := json.Unmarshal(out, &ds)

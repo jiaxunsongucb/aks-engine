@@ -13,7 +13,7 @@ import (
 
 // Generate will run aks-engine generate on a given cluster definition
 func (e *Engine) Generate() error {
-	cmd := exec.Command("./bin/aks-engine", "generate", e.Config.ClusterDefinitionTemplate, "--output-directory", e.Config.GeneratedDefinitionPath)
+	cmd := exec.Command("./bin/aks-engine", "generate", e.Config.ClusterDefinitionTemplate, "--output-directory", e.Config.GeneratedDefinitionPath, "--client-id", e.Config.ClientID, "--client-secret", e.Config.ClientSecret)
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -30,9 +30,13 @@ func (e *Engine) Deploy(location string) error {
 	cmd := exec.Command("./bin/aks-engine", "deploy",
 		"--location", location,
 		"--api-model", e.Config.ClusterDefinitionPath,
-		"--dns-prefix", e.Config.DefinitionName,
 		"--output-directory", e.Config.GeneratedDefinitionPath,
 		"--resource-group", e.Config.DefinitionName,
+		"--client-id", e.Config.ClientID,
+		"--client-secret", e.Config.ClientSecret,
+		"--azure-env", "AzureStackCloud",
+		"--subscription-id", e.Config.SubscriptionID,
+		"--identity-system", "adfs",
 	)
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()

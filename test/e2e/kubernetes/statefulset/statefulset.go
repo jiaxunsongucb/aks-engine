@@ -28,7 +28,7 @@ func Get(ssName, namespace string, retries int) (*Statefulset, error) {
 	var out []byte
 	var err error
 	for i := 0; i < retries; i++ {
-		cmd := exec.Command("k", "get", "statefulsets", ssName, "-n", namespace, "-o", "json")
+		cmd := exec.Command("kubectl", "get", "statefulsets", ssName, "-n", namespace, "-o", "json")
 		out, err = cmd.CombinedOutput()
 		if err == nil {
 			jsonErr := json.Unmarshal(out, &ss)

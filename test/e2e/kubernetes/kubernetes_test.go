@@ -186,7 +186,7 @@ var _ = BeforeSuite(func() {
 
 var _ = AfterSuite(func() {
 	if cfg.DebugAfterSuite {
-		cmd := exec.Command("k", "get", "deployments,pods,svc,daemonsets,configmaps,endpoints,jobs,clusterroles,clusterrolebindings,roles,rolebindings,storageclasses,podsecuritypolicy", "--all-namespaces", "-o", "wide")
+		cmd := exec.Command("kubectl", "get", "deployments,pods,svc,daemonsets,configmaps,endpoints,jobs,clusterroles,clusterrolebindings,roles,rolebindings,storageclasses,podsecuritypolicy", "--all-namespaces", "-o", "wide")
 		out, err := cmd.CombinedOutput()
 		log.Printf("%s\n", out)
 		if err != nil {
@@ -838,7 +838,7 @@ var _ = Describe("Azure Container Cluster using the Kubernetes Orchestrator", fu
 				expectedReadyNodes = -1
 			}
 			ready := node.WaitOnReady(expectedReadyNodes, 10*time.Second, cfg.Timeout)
-			cmd := exec.Command("k", "get", "nodes", "-o", "wide")
+			cmd := exec.Command("kubectl", "get", "nodes", "-o", "wide")
 			out, _ := cmd.CombinedOutput()
 			log.Printf("%s\n", out)
 			Expect(ready).To(Equal(true))
@@ -990,7 +990,7 @@ var _ = Describe("Azure Container Cluster using the Kubernetes Orchestrator", fu
 		})
 
 		It("should print cluster resources", func() {
-			cmd := exec.Command("k", "get", "deployments,pods,svc,daemonsets,configmaps,endpoints,jobs,clusterroles,clusterrolebindings,roles,rolebindings,storageclasses,podsecuritypolicy", "--all-namespaces", "-o", "wide")
+			cmd := exec.Command("kubectl", "get", "deployments,pods,svc,daemonsets,configmaps,endpoints,jobs,clusterroles,clusterrolebindings,roles,rolebindings,storageclasses,podsecuritypolicy", "--all-namespaces", "-o", "wide")
 			out, err := cmd.CombinedOutput()
 			log.Printf("%s\n", out)
 			if err != nil {
@@ -1346,7 +1346,7 @@ var _ = Describe("Azure Container Cluster using the Kubernetes Orchestrator", fu
 					// start `kubectl proxy` in the background on a random port
 					var proxyStdout io.ReadCloser
 					var proxyStdoutReader *bufio.Reader
-					proxyCmd := exec.Command("k", "proxy", "-p", "0")
+					proxyCmd := exec.Command("kubectl", "proxy", "-p", "0")
 					proxyCmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 					proxyStdout, err = proxyCmd.StdoutPipe()
 					Expect(err).NotTo(HaveOccurred())
@@ -1471,7 +1471,7 @@ var _ = Describe("Azure Container Cluster using the Kubernetes Orchestrator", fu
 								log.Printf("Waiting for retry...\n")
 								time.Sleep(10 * time.Second)
 							}
-							proxyCmd = exec.Command("k", "port-forward", p.Metadata.Name, "8123:80")
+							proxyCmd = exec.Command("kubectl", "port-forward", p.Metadata.Name, "8123:80")
 							proxyCmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 							proxyStdout, err = proxyCmd.StdoutPipe()
 							Expect(err).NotTo(HaveOccurred())
@@ -1650,7 +1650,7 @@ var _ = Describe("Azure Container Cluster using the Kubernetes Orchestrator", fu
 							expectedReadyNodes = -1
 						}
 						ready := node.WaitOnReady(expectedReadyNodes, 1*time.Minute, cfg.Timeout)
-						cmd2 := exec.Command("k", "get", "nodes", "-o", "wide")
+						cmd2 := exec.Command("kubectl", "get", "nodes", "-o", "wide")
 						out2, _ := cmd2.CombinedOutput()
 						log.Printf("%s\n", out2)
 						if !ready {

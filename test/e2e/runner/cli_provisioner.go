@@ -324,7 +324,7 @@ func (cli *CLIProvisioner) waitForNodes() error {
 				expectedReadyNodes = -1
 			}
 			ready := node.WaitOnReady(expectedReadyNodes, 10*time.Second, cli.Config.Timeout)
-			cmd := exec.Command("k", "get", "nodes", "-o", "wide")
+			cmd := exec.Command("kubectl", "get", "nodes", "-o", "wide")
 			out, _ := cmd.CombinedOutput()
 			log.Printf("%s\n", out)
 			if !ready {
@@ -341,14 +341,14 @@ func (cli *CLIProvisioner) waitForNodes() error {
 						return err
 					}
 					if !exp.MatchString(n.Metadata.Name) {
-						cmd := exec.Command("k", "label", "node", n.Metadata.Name, "foo=bar")
+						cmd := exec.Command("kubectl", "label", "node", n.Metadata.Name, "foo=bar")
 						util.PrintCommand(cmd)
 						out, err := cmd.CombinedOutput()
 						log.Printf("%s\n", out)
 						if err != nil {
 							return errors.Wrapf(err, "Unable to assign label to node %s", n.Metadata.Name)
 						}
-						cmd = exec.Command("k", "annotate", "node", n.Metadata.Name, "foo=bar")
+						cmd = exec.Command("kubectl", "annotate", "node", n.Metadata.Name, "foo=bar")
 						util.PrintCommand(cmd)
 						out, err = cmd.CombinedOutput()
 						log.Printf("%s\n", out)

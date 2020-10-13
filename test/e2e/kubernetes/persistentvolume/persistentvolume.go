@@ -86,7 +86,7 @@ func DescribePVs() {
 // Describe will describe a pv resource
 func (pv *PersistentVolume) Describe() error {
 	var commandTimeout time.Duration
-	cmd := exec.Command("k", "describe", "pv", pv.Metadata.Name)
+	cmd := exec.Command("kubectl", "describe", "pv", pv.Metadata.Name)
 	out, err := util.RunAndLogCommand(cmd, commandTimeout)
 	log.Printf("\n%s\n", string(out))
 	return err
@@ -94,7 +94,7 @@ func (pv *PersistentVolume) Describe() error {
 
 // Get returns the current pvs for a given kubeconfig
 func Get() (*List, error) {
-	cmd := exec.Command("k", "get", "pv", "-o", "json")
+	cmd := exec.Command("kubectl", "get", "pv", "-o", "json")
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {

@@ -81,7 +81,7 @@ func GetAsync(name, namespace string) GetResult {
 
 // Get returns the service definition specified in a given namespace
 func Get(name, namespace string) (*Service, error) {
-	cmd := exec.Command("k", "get", "svc", "-o", "json", "-n", namespace, name)
+	cmd := exec.Command("kubectl", "get", "svc", "-o", "json", "-n", namespace, name)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Printf("Error getting svc:\n")
@@ -99,7 +99,7 @@ func Get(name, namespace string) (*Service, error) {
 
 // GetAll will return all services in a given namespace
 func GetAll(namespace string) (*List, error) {
-	cmd := exec.Command("k", "get", "svc", "-n", namespace, "-o", "json")
+	cmd := exec.Command("kubectl", "get", "svc", "-n", namespace, "-o", "json")
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -156,7 +156,7 @@ func (s *Service) Delete(retries int) error {
 	var kubectlOutput []byte
 	var kubectlError error
 	for i := 0; i < retries; i++ {
-		cmd := exec.Command("k", "delete", "svc", "-n", s.Metadata.Namespace, s.Metadata.Name)
+		cmd := exec.Command("kubectl", "delete", "svc", "-n", s.Metadata.Namespace, s.Metadata.Name)
 		kubectlOutput, kubectlError = util.RunAndLogCommand(cmd, zeroValueDuration)
 		if kubectlError != nil {
 			log.Printf("Error while trying to delete service %s in namespace %s:%s\n", s.Metadata.Namespace, s.Metadata.Name, kubectlError)
@@ -186,7 +186,7 @@ func DescribeServices(svcPrefix, namespace string) {
 // Describe will describe a service resource
 func (s *Service) Describe() error {
 	var commandTimeout time.Duration
-	cmd := exec.Command("k", "describe", "svc", s.Metadata.Name, "-n", s.Metadata.Namespace)
+	cmd := exec.Command("kubectl", "describe", "svc", s.Metadata.Name, "-n", s.Metadata.Namespace)
 	out, err := util.RunAndLogCommand(cmd, commandTimeout)
 	log.Printf("\n%s\n", string(out))
 	return err
@@ -339,7 +339,7 @@ func (s *Service) Validate(bodyResponseTextMatch string) error {
 
 // CreateServiceFromFile will create a Service from file with a name
 func CreateServiceFromFile(filename, name, namespace string) (*Service, error) {
-	cmd := exec.Command("k", "create", "-f", filename)
+	cmd := exec.Command("kubectl", "create", "-f", filename)
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {

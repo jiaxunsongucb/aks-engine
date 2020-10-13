@@ -59,7 +59,7 @@ func Get(name, namespace string, retries int) (*HPA, error) {
 	var out []byte
 	var err error
 	for i := 0; i < retries; i++ {
-		cmd := exec.Command("k", "get", "hpa", "-o", "json", "-n", namespace, name)
+		cmd := exec.Command("kubectl", "get", "hpa", "-o", "json", "-n", namespace, name)
 		out, err = cmd.CombinedOutput()
 		if err != nil {
 			util.PrintCommand(cmd)
@@ -78,7 +78,7 @@ func Get(name, namespace string, retries int) (*HPA, error) {
 
 // GetAll will return all HPA resources in a given namespace
 func GetAll(namespace string) (*List, error) {
-	cmd := exec.Command("k", "get", "hpa", "-n", namespace, "-o", "json")
+	cmd := exec.Command("kubectl", "get", "hpa", "-n", namespace, "-o", "json")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Printf("Error getting hpa:\n")
@@ -132,7 +132,7 @@ func GetAllByPrefix(prefix, namespace string) ([]HPA, error) {
 // Describe will describe a HPA resource
 func (h *HPA) Describe() error {
 	var commandTimeout time.Duration
-	cmd := exec.Command("k", "describe", "hpa", h.Metadata.Name, "-n", h.Metadata.Namespace)
+	cmd := exec.Command("kubectl", "describe", "hpa", h.Metadata.Name, "-n", h.Metadata.Namespace)
 	out, err := util.RunAndLogCommand(cmd, commandTimeout)
 	log.Printf("\n%s\n", string(out))
 	return err
@@ -144,7 +144,7 @@ func (h *HPA) Delete(retries int) error {
 	var kubectlOutput []byte
 	var kubectlError error
 	for i := 0; i < retries; i++ {
-		cmd := exec.Command("k", "delete", "hpa", "-n", h.Metadata.Namespace, h.Metadata.Name)
+		cmd := exec.Command("kubectl", "delete", "hpa", "-n", h.Metadata.Namespace, h.Metadata.Name)
 		kubectlOutput, kubectlError = util.RunAndLogCommand(cmd, zeroValueDuration)
 		if kubectlError != nil {
 			log.Printf("Error while trying to delete service %s in namespace %s:%s\n", h.Metadata.Namespace, h.Metadata.Name, string(kubectlOutput))

@@ -49,7 +49,7 @@ type Parameters struct {
 
 // CreateStorageClassFromFile will create a StorageClass from file with a name
 func CreateStorageClassFromFile(filename, name string) (*StorageClass, error) {
-	cmd := exec.Command("k", "apply", "-f", filename)
+	cmd := exec.Command("kubectl", "apply", "-f", filename)
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -124,7 +124,7 @@ func GetAsync(scName string) GetResult {
 
 // Get will return a StorageClass with a given name and namespace
 func Get(scName string) (*StorageClass, error) {
-	cmd := exec.Command("k", "get", "storageclass", scName, "-o", "json")
+	cmd := exec.Command("kubectl", "get", "storageclass", scName, "-o", "json")
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -142,7 +142,7 @@ func Get(scName string) (*StorageClass, error) {
 // Describe will describe a storageclass resource
 func (sc *StorageClass) Describe() error {
 	var commandTimeout time.Duration
-	cmd := exec.Command("k", "describe", "storageclass", sc.Metadata.Name)
+	cmd := exec.Command("kubectl", "describe", "storageclass", sc.Metadata.Name)
 	out, err := util.RunAndLogCommand(cmd, commandTimeout)
 	log.Printf("\n%s\n", string(out))
 	return err

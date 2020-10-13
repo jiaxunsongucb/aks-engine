@@ -55,6 +55,8 @@ type Config struct {
 	SubscriptionID      string `envconfig:"SUBSCRIPTION_ID"`
 	ClientID            string `envconfig:"CLIENT_ID"`
 	ClientSecret        string `envconfig:"CLIENT_SECRET"`
+	DeployApplications  bool   `envconfig:"DEPLOY_APPLICATIONS" default:"false"`
+	AfterUpgrade        bool   `envconfig:"AFTER_UPGRADE" default:"false"`
 	*ArcOnboardingConfig
 }
 
@@ -255,9 +257,9 @@ func (c *Config) SetKubeConfig() {
 // GetSSHKeyPath will return the absolute path to the ssh private key
 func (c *Config) GetSSHKeyPath() string {
 	if c.UseDeployCommand {
-		return filepath.Join(c.CurrentWorkingDir, "_output", c.Name, "azureuser_rsa")
+		return "/home/jiaxsong/.ssh/id_rsa"
 	}
-	return filepath.Join(c.CurrentWorkingDir, "_output", c.Name+"-ssh")
+	return "/home/jiaxsong/.ssh/id_rsa"
 }
 
 // SetEnvVars will determine if we need to

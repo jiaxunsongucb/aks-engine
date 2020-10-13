@@ -41,7 +41,7 @@ type InvolvedObject struct {
 
 // GetAll returns all events.
 func GetAll() (*List, error) {
-	cmd := exec.Command("k", "get", "events", "-o", "json", "--sort-by=.metadata.creationTimestamp")
+	cmd := exec.Command("kubectl", "get", "events", "-o", "json", "--sort-by=.metadata.creationTimestamp")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Printf("Error getting event:\n")

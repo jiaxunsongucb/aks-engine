@@ -26,7 +26,7 @@ type Metadata struct {
 
 // Create a namespace with the given name
 func Create(name string) (*Namespace, error) {
-	cmd := exec.Command("k", "create", "namespace", name)
+	cmd := exec.Command("kubectl", "create", "namespace", name)
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -42,7 +42,7 @@ func CreateNamespaceDeleteIfExist(name string) (*Namespace, error) {
 	if err == nil {
 		// Delete existing namespace if exists to avoid dirty exit in last round of test
 		log.Printf("%s already exist", n)
-		cmd := exec.Command("k", "delete", "namespace", name)
+		cmd := exec.Command("kubectl", "delete", "namespace", name)
 		util.PrintCommand(cmd)
 		out, err := cmd.CombinedOutput()
 		if err != nil {
@@ -55,7 +55,7 @@ func CreateNamespaceDeleteIfExist(name string) (*Namespace, error) {
 
 // Get returns a namespace for with a given name
 func Get(name string) (*Namespace, error) {
-	cmd := exec.Command("k", "get", "namespace", name, "-o", "json")
+	cmd := exec.Command("kubectl", "get", "namespace", name, "-o", "json")
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -72,7 +72,7 @@ func Get(name string) (*Namespace, error) {
 
 // Delete a namespace
 func (n *Namespace) Delete() error {
-	cmd := exec.Command("k", "delete", "namespace", n.Metadata.Name)
+	cmd := exec.Command("kubectl", "delete", "namespace", n.Metadata.Name)
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -84,7 +84,7 @@ func (n *Namespace) Delete() error {
 
 // Label a namespace
 func (n *Namespace) Label(label string) error {
-	cmd := exec.Command("k", "label", "--overwrite=true", "namespace/"+n.Metadata.Name, label)
+	cmd := exec.Command("kubectl", "label", "--overwrite=true", "namespace/"+n.Metadata.Name, label)
 	util.PrintCommand(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
