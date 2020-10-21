@@ -71,7 +71,7 @@ func (kan *UpgradeAgentNode) DeleteNode(vmName *string, drain bool) error {
 	// Cordon and drain the node
 	if drain {
 		podsForDeletion, err := operations.SafelyDrainNodeWithClient(client, kan.logger, nodeName, kan.cordonDrainTimeout)
-		if err == nil && kan.UpgradeContainerService.Properties.IsAzureStackCloud() {
+		if err == nil && !kan.UpgradeContainerService.Properties.IsAzureStackCloud() {
 			err = operations.WaitForDisksAttached(podsForDeletion, client, kan.logger)
 		}
 		if err != nil {

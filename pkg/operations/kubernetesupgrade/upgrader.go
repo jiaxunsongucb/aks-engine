@@ -660,7 +660,7 @@ func (ku *Upgrader) upgradeAgentScaleSets(ctx context.Context) error {
 				vmToUpgrade.Name,
 				cordonDrainTimeout,
 			)
-			if err == nil && ku.ClusterTopology.DataModel.Properties.IsAzureStackCloud() {
+			if err == nil && !ku.ClusterTopology.DataModel.Properties.IsAzureStackCloud() {
 				err = operations.WaitForDisksAttached(podsForDeletion, client, ku.logger)
 			}
 			if err != nil {
@@ -805,7 +805,7 @@ func (ku *Upgrader) copyCustomPropertiesToNewNode(client armhelpers.KubernetesCl
 		cordonDrainTimeout = *ku.cordonDrainTimeout
 	}
 	podsForDeletion, err := operations.SafelyDrainNodeWithClient(client, ku.logger, newNodeName, cordonDrainTimeout)
-	if err == nil && ku.ClusterTopology.DataModel.Properties.IsAzureStackCloud() {
+	if err == nil && !ku.ClusterTopology.DataModel.Properties.IsAzureStackCloud() {
 		err = operations.WaitForDisksAttached(podsForDeletion, client, ku.logger)
 	}
 	if err != nil {
